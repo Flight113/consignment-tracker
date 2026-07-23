@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexTrack - Global Consignment Tracking</title>
-    <!-- FontAwesome for Icons -->
+    <title>ApexTrack - Enterprise Consignment Tracking</title>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- Leaflet CSS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
         :root {
             --primary-color: #0052cc;
@@ -59,9 +61,9 @@
             font-size: 0.85rem;
         }
 
-        /* Main Container */
+        /* Main Layout */
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 1.5rem auto;
             padding: 0 1rem;
         }
@@ -82,7 +84,6 @@
             font-size: 0.9rem;
         }
 
-        /* Search Box Layout */
         .search-box {
             display: flex;
             flex-direction: column;
@@ -137,7 +138,7 @@
             font-size: 0.9rem;
         }
 
-        /* Results Display Card */
+        /* Results Card */
         .results-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -163,20 +164,9 @@
             margin-top: 0.3rem;
         }
 
-        .edd-box {
-            text-align: right;
-        }
-
-        .edd-box span {
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            display: block;
-        }
-
-        .edd-box strong {
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
+        .edd-box { text-align: right; }
+        .edd-box span { font-size: 0.75rem; color: var(--text-sub); display: block; }
+        .edd-box strong { font-size: 0.95rem; color: var(--text-main); }
 
         hr {
             border: 0;
@@ -234,6 +224,7 @@
             margin: 0 auto 0.3rem;
             color: var(--text-sub);
             font-size: 0.8rem;
+            position: relative;
         }
 
         .step.active .step-icon {
@@ -242,14 +233,21 @@
             color: #fff;
         }
 
-        .step p {
-            font-size: 0.7rem;
-            color: var(--text-sub);
+        /* Blinking Radar Pulse Animation */
+        .step.blinking .step-icon {
+            animation: pulse 1.5s infinite;
         }
 
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(54, 179, 126, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0); }
+        }
+
+        .step p { font-size: 0.7rem; color: var(--text-sub); }
         .step.active p { color: var(--text-main); font-weight: 600; }
 
-        /* Consignment Details Block */
+        /* Meta Grid Layout */
         .meta-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -270,18 +268,33 @@
 
         .meta-card h3 {
             font-size: 0.85rem;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
             color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         .meta-card p {
             font-size: 0.85rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Interactive Map */
+        #map {
+            height: 250px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.2rem;
+            z-index: 1;
         }
 
         /* Activity Logs Table */
         .history-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 1.5rem;
         }
 
         .history-table th, .history-table td {
@@ -291,15 +304,45 @@
             font-size: 0.8rem;
         }
 
-        .history-table th {
-            background: #f8fafc;
-            color: var(--text-sub);
+        .history-table th { background: #f8fafc; color: var(--text-sub); }
+
+        /* Action Buttons */
+        .action-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        @media (min-width: 500px) {
+            .action-bar { flex-direction: row; justify-content: space-between; }
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-print { background: #091e42; color: #fff; border: none; }
+        .btn-support { background: #eae6ff; color: #403294; border: 1px solid #c0b6f2; }
+
+        @media print {
+            .navbar, .search-section, .action-bar, #map { display: none !important; }
+            body { background: white; }
+            .results-card { box-shadow: none; border: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Navigation Header -->
     <header class="navbar">
         <div class="logo">
             <i class="fa-solid fa-box-archive"></i>
@@ -312,20 +355,19 @@
         </nav>
     </header>
 
-    <!-- Main Section -->
     <main class="container">
         <section class="search-section">
             <h1>Track Your Shipment</h1>
             <p>Enter your tracking or Waybill ID to get real-time delivery updates.</p>
             
             <form id="trackingForm" class="search-box">
-                <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID (e.g., ATG-98765)" required>
+                <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID (e.g., ATG-10001)" required>
                 <button type="submit">Track Parcel</button>
             </form>
             <p id="errorMessage" class="error-msg" style="display: none;"></p>
         </section>
 
-        <!-- Tracking Results Card -->
+        <!-- Dynamic Results Card -->
         <section id="resultsSection" class="results-card" style="display: none;">
             <div class="results-header">
                 <div>
@@ -340,7 +382,7 @@
 
             <hr>
 
-            <!-- Step Progress Indicator -->
+            <!-- Blinking Status Progress Bar -->
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
                 <div class="step" id="step1">
@@ -348,7 +390,7 @@
                     <p>Placed</p>
                 </div>
                 <div class="step" id="step2">
-                    <div class="step-icon"><i class="fa-solid fa-warehouse"></i></div>
+                    <div class="step-icon"><i class="fa-solid fa-plane-departure"></i></div>
                     <p>In Transit</p>
                 </div>
                 <div class="step" id="step3">
@@ -361,11 +403,16 @@
                 </div>
             </div>
 
-            <!-- Details Section -->
+            <!-- Route & Package Meta Info -->
             <div class="meta-grid">
                 <div class="meta-card">
-                    <h3><i class="fa-solid fa-location-dot"></i> Route</h3>
+                    <h3><i class="fa-solid fa-user"></i> Sender Details</h3>
+                    <p><strong>Name:</strong> <span id="displaySender">--</span></p>
                     <p><strong>Origin:</strong> <span id="displayOrigin">--</span></p>
+                </div>
+                <div class="meta-card">
+                    <h3><i class="fa-solid fa-location-dot"></i> Recipient Details</h3>
+                    <p><strong>Name:</strong> <span id="displayRecipient">--</span></p>
                     <p><strong>Destination:</strong> <span id="displayDestination">--</span></p>
                 </div>
                 <div class="meta-card">
@@ -373,11 +420,20 @@
                     <p><strong>Weight:</strong> <span id="displayWeight">--</span></p>
                     <p><strong>Freight:</strong> <span id="displayFreight">--</span></p>
                 </div>
+                <div class="meta-card">
+                    <h3><i class="fa-solid fa-shield-halved"></i> Service Type</h3>
+                    <p><strong>Service:</strong> <span id="displayService">Express Cargo</span></p>
+                    <p><strong>Payment Status:</strong> <span style="color: var(--success); font-weight: 600;">Paid</span></p>
+                </div>
             </div>
 
-            <!-- Event Log Table -->
+            <!-- Interactive Map View -->
+            <h3 style="margin-bottom: 0.5rem; font-size: 0.95rem;"><i class="fa-solid fa-map-location-dot"></i> Live Route Map</h3>
+            <div id="map"></div>
+
+            <!-- Activity Logs Table -->
             <div class="history-section">
-                <h3 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Activity Logs</h3>
+                <h3 style="margin-bottom: 0.5rem; font-size: 0.95rem;"><i class="fa-solid fa-clock-rotate-left"></i> Activity Logs</h3>
                 <table class="history-table">
                     <thead>
                         <tr>
@@ -389,25 +445,189 @@
                     <tbody id="historyTableBody"></tbody>
                 </table>
             </div>
+
+            <!-- Action Bar (Invoice Download & Support) -->
+            <div class="action-bar">
+                <button onclick="window.print()" class="btn-action btn-print">
+                    <i class="fa-solid fa-file-arrow-down"></i> Download Invoice / Waybill
+                </button>
+                <a href="https://wa.me/?text=Hello%20Support,%20I%20have%20an%20inquiry%20regarding%20my%20shipment" target="_blank" class="btn-action btn-support">
+                    <i class="fa-solid fa-headset"></i> Customer Support / Live Chat
+                </a>
+            </div>
+
         </section>
     </main>
 
-    <!-- Interactive JavaScript Logic -->
+    <!-- Leaflet JS for Map Rendering -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
-        // Sample tracking database
+        let mapInstance = null;
+
+        // MULTIPLE INDIVIDUAL TRACKING DATABASE (10 UNIQUE PROFILES)
         const mockDatabase = {
-            "ATG-98765": {
+            "ATG-10001": {
+                sender: "John Miller (Lagos Office)",
+                recipient: "Sarah Williams (London)",
                 status: "In Transit",
-                stepLevel: 2, // Steps 1 to 4
+                stepLevel: 2, // 1: Placed, 2: In Transit, 3: Out for Delivery, 4: Delivered
                 edd: "July 28, 2026",
                 origin: "Lagos, Nigeria",
                 destination: "London, UK",
-                weight: "14.5 kg",
+                weight: "12.5 kg",
                 freight: "Air Freight",
+                service: "Priority Air Express",
+                coords: { origin: [6.5244, 3.3792], current: [20.0000, 10.0000], destination: [51.5074, -0.1278] },
                 history: [
                     { time: "2026-07-23 10:15", location: "Lagos Hub", detail: "Departed international sorting facility." },
-                    { time: "2026-07-22 16:30", location: "Ikeja Terminal", detail: "Customs clearance completed." },
-                    { time: "2026-07-21 09:00", location: "Lagos Depot", detail: "Consignment received and processed." }
+                    { time: "2026-07-22 16:30", location: "Ikeja Terminal", detail: "Customs clearance completed." }
+                ]
+            },
+            "ATG-10002": {
+                sender: "David Chen (Shanghai Port)",
+                recipient: "Michael Brown (Abuja)",
+                status: "Out for Delivery",
+                stepLevel: 3,
+                edd: "July 24, 2026",
+                origin: "Shanghai, China",
+                destination: "Abuja, Nigeria",
+                weight: "45.0 kg",
+                freight: "Ocean Freight",
+                service: "Standard Maritime",
+                coords: { origin: [31.2304, 121.4737], current: [9.0765, 7.3986], destination: [9.0765, 7.3986] },
+                history: [
+                    { time: "2026-07-23 08:00", location: "Abuja Depot", detail: "Loaded on courier vehicle for final delivery." },
+                    { time: "2026-07-21 14:20", location: "Lagos Port", detail: "Discharged from vessel." }
+                ]
+            },
+            "ATG-10003": {
+                sender: "Emma Watson (New York Hub)",
+                recipient: "Grace Johnson (Toronto)",
+                status: "Delivered",
+                stepLevel: 4,
+                edd: "July 22, 2026",
+                origin: "New York, USA",
+                destination: "Toronto, Canada",
+                weight: "3.2 kg",
+                freight: "Road Courier",
+                service: "Express Ground",
+                coords: { origin: [40.7128, -74.0060], current: [43.6532, -79.3832], destination: [43.6532, -79.3832] },
+                history: [
+                    { time: "2026-07-22 15:45", location: "Toronto Address", detail: "Package delivered and signed by Recipient." },
+                    { time: "2026-07-22 09:10", location: "Toronto Facility", detail: "Out for delivery." }
+                ]
+            },
+            "ATG-10004": {
+                sender: "Apex Logistics (Frankfurt)",
+                recipient: "Ahmed Hassan (Dubai)",
+                status: "Order Placed",
+                stepLevel: 1,
+                edd: "August 02, 2026",
+                origin: "Frankfurt, Germany",
+                destination: "Dubai, UAE",
+                weight: "8.7 kg",
+                freight: "Air Freight",
+                service: "Economy Air",
+                coords: { origin: [50.1109, 8.6821], current: [50.1109, 8.6821], destination: [25.2048, 55.2708] },
+                history: [
+                    { time: "2026-07-23 11:00", location: "Frankfurt Depot", detail: "Shipment documentation verified and created." }
+                ]
+            },
+            "ATG-10005": {
+                sender: "Kowloon Trading (Hong Kong)",
+                recipient: "Peter Parker (Sydney)",
+                status: "In Transit",
+                stepLevel: 2,
+                edd: "July 30, 2026",
+                origin: "Hong Kong",
+                destination: "Sydney, Australia",
+                weight: "22.1 kg",
+                freight: "Ocean Express",
+                service: "Container Freight",
+                coords: { origin: [22.3193, 114.1694], current: [0.0000, 120.0000], destination: [-33.8688, 151.2093] },
+                history: [
+                    { time: "2026-07-20 18:00", location: "Hong Kong Port", detail: "Vessel departed container terminal." }
+                ]
+            },
+            "ATG-10006": {
+                sender: "Carlos Silva (Sao Paulo)",
+                recipient: "Elena Rostova (Madrid)",
+                status: "In Transit",
+                stepLevel: 2,
+                edd: "July 29, 2026",
+                origin: "Sao Paulo, Brazil",
+                destination: "Madrid, Spain",
+                weight: "6.4 kg",
+                freight: "Air Freight",
+                service: "International Priority",
+                coords: { origin: [-23.5505, -46.6333], current: [15.0000, -25.0000], destination: [40.4168, -3.7038] },
+                history: [
+                    { time: "2026-07-22 22:30", location: "Guarulhos Airport", detail: "Flight departed." }
+                ]
+            },
+            "ATG-10007": {
+                sender: "Tokyo Tech Ltd (Tokyo)",
+                recipient: "Robert Davis (Chicago)",
+                status: "Out for Delivery",
+                stepLevel: 3,
+                edd: "July 24, 2026",
+                origin: "Tokyo, Japan",
+                destination: "Chicago, USA",
+                weight: "1.8 kg",
+                freight: "Air Express",
+                service: "Next Day Cargo",
+                coords: { origin: [35.6762, 139.6503], current: [41.8781, -87.6298], destination: [41.8781, -87.6298] },
+                history: [
+                    { time: "2026-07-23 07:15", location: "Chicago Hub", detail: "Driver dispatched for delivery." }
+                ]
+            },
+            "ATG-10008": {
+                sender: "Sahara Cargo (Cairo)",
+                recipient: "Fatima Ali (Riyadh)",
+                status: "Delivered",
+                stepLevel: 4,
+                edd: "July 21, 2026",
+                origin: "Cairo, Egypt",
+                destination: "Riyadh, Saudi Arabia",
+                weight: "18.0 kg",
+                freight: "Road Courier",
+                service: "Standard Overland",
+                coords: { origin: [30.0444, 31.2357], current: [24.7136, 46.6753], destination: [24.7136, 46.6753] },
+                history: [
+                    { time: "2026-07-21 16:00", location: "Riyadh Destination", detail: "Package handed to recipient." }
+                ]
+            },
+            "ATG-10009": {
+                sender: "Nairobi Freight (Nairobi)",
+                recipient: "Samuel Oko (Port Harcourt)",
+                status: "In Transit",
+                stepLevel: 2,
+                edd: "July 27, 2026",
+                origin: "Nairobi, Kenya",
+                destination: "Port Harcourt, Nigeria",
+                weight: "29.3 kg",
+                freight: "Air Freight",
+                service: "Regional Express",
+                coords: { origin: [-1.2921, 36.8219], current: [4.0000, 20.0000], destination: [4.8156, 7.0498] },
+                history: [
+                    { time: "2026-07-23 05:00", location: "JKIA Airport", detail: "Transit flight departed." }
+                ]
+            },
+            "ATG-10010": {
+                sender: "Paris Luxe (Paris)",
+                recipient: "Linda Green (Los Angeles)",
+                status: "Order Placed",
+                stepLevel: 1,
+                edd: "August 01, 2026",
+                origin: "Paris, France",
+                destination: "Los Angeles, USA",
+                weight: "5.0 kg",
+                freight: "Air Freight",
+                service: "VIP Secure Cargo",
+                coords: { origin: [48.8566, 2.3522], current: [48.8566, 2.3522], destination: [34.0522, -118.2437] },
+                history: [
+                    { time: "2026-07-23 12:30", location: "CDG Airport", detail: "Awaiting customs export clearance." }
                 ]
             }
         };
@@ -426,35 +646,40 @@
                 resultsSection.style.display = 'block';
             } else {
                 resultsSection.style.display = 'none';
-                errorMsg.textContent = "Tracking ID not found. Try searching for ATG-98765.";
+                errorMsg.textContent = "Tracking ID not found. Use IDs ATG-10001 through ATG-10010.";
                 errorMsg.style.display = 'block';
             }
         });
 
         function renderTrackingData(id, data) {
+            // Fill Metadata
             document.getElementById('displayTrackingId').textContent = id;
             document.getElementById('displayStatus').textContent = data.status;
             document.getElementById('displayEDD').textContent = data.edd;
+            document.getElementById('displaySender').textContent = data.sender;
+            document.getElementById('displayRecipient').textContent = data.recipient;
             document.getElementById('displayOrigin').textContent = data.origin;
             document.getElementById('displayDestination').textContent = data.destination;
             document.getElementById('displayWeight').textContent = data.weight;
             document.getElementById('displayFreight').textContent = data.freight;
+            document.getElementById('displayService').textContent = data.service;
 
-            // Set Progress Bar Percentage
+            // Set Progress Bar Percentage & Blinking Step Indicator
             const progressPercents = [0, 0, 33, 66, 100];
             document.getElementById('progressBar').style.width = `${progressPercents[data.stepLevel]}%`;
 
-            // Active Steps
             for (let i = 1; i <= 4; i++) {
                 const stepElem = document.getElementById(`step${i}`);
-                if (i <= data.stepLevel) {
+                stepElem.classList.remove('active', 'blinking');
+                
+                if (i < data.stepLevel) {
                     stepElem.classList.add('active');
-                } else {
-                    stepElem.classList.remove('active');
+                } else if (i === data.stepLevel) {
+                    stepElem.classList.add('active', 'blinking');
                 }
             }
 
-            // Fill History Logs
+            // Fill Activity History Table
             const tableBody = document.getElementById('historyTableBody');
             tableBody.innerHTML = '';
             
@@ -468,6 +693,28 @@
                 `;
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
+
+            // Initialize or Update Interactive Route Map
+            setTimeout(() => {
+                if (mapInstance !== null) {
+                    mapInstance.remove();
+                }
+
+                mapInstance = L.map('map').setView(data.coords.current, 3);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(mapInstance);
+
+                // Add Pins
+                L.marker(data.coords.origin).addTo(mapInstance).bindPopup("<b>Origin:</b> " + data.origin);
+                L.marker(data.coords.current).addTo(mapInstance).bindPopup("<b>Current Location:</b> " + data.status).openPopup();
+                L.marker(data.coords.destination).addTo(mapInstance).bindPopup("<b>Destination:</b> " + data.destination);
+
+                // Draw Path Line
+                const latlngs = [data.coords.origin, data.coords.current, data.coords.destination];
+                L.polyline(latlngs, { color: '#0052cc', weight: 3, dashArray: '6, 6' }).addTo(mapInstance);
+            }, 300);
         }
     </script>
 </body>
