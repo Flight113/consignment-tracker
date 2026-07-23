@@ -64,7 +64,7 @@
 
         .error-msg { color: var(--danger); margin-top: 0.8rem; font-weight: 700; font-size: 0.95rem; text-align: center; }
 
-        /* ==================== PREVIOUS RESULT CARD DISPLAY STYLES ==================== */
+        /* RESULTS CARD & PRINT HEADER */
         .print-header { display: none; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 2px solid #000; }
         .print-header h1 { font-size: 1.5rem; color: #091e42; }
 
@@ -81,14 +81,24 @@
         .progress-container::before { content: ''; position: absolute; top: 18px; left: 0; width: 100%; height: 4px; background: var(--border); z-index: 1; }
         .progress-bar { position: absolute; top: 18px; left: 0; height: 4px; background: var(--success); z-index: 1; width: 0%; transition: width 0.4s ease; }
         .step { position: relative; z-index: 2; text-align: center; background: var(--white); padding: 0 0.2rem; }
-        .step-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.3rem; color: var(--gray); font-size: 0.8rem; position: relative; }
+        .step-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.3rem; color: var(--gray); font-size: 0.8rem; position: relative; transition: all 0.3s ease; }
+        
         .step.active .step-icon { border-color: var(--success); background: var(--success); color: #fff; }
-        .step.blinking .step-icon { animation: pulse 1.5s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(54, 179, 126, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0); }
+        
+        /* Fixed Blinking Pulse Effect */
+        .step.blinking .step-icon { 
+            border-color: var(--success) !important;
+            background: var(--success) !important;
+            color: #fff !important;
+            animation: pulse 1.2s infinite ease-in-out; 
         }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0.8); transform: scale(1); }
+            50% { box-shadow: 0 0 0 10px rgba(54, 179, 126, 0); transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 rgba(54, 179, 126, 0); transform: scale(1); }
+        }
+
         .step p { font-size: 0.7rem; color: var(--gray); }
         .step.active p { color: var(--dark); font-weight: 600; }
 
@@ -103,8 +113,8 @@
         .meta-card h3 { font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--gray); display: flex; align-items: center; gap: 0.4rem; }
         .meta-card p { font-size: 0.85rem; margin-bottom: 0.2rem; }
 
-        /* Interactive Map */
-        #map { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.2rem; z-index: 1; }
+        /* Interactive Map Container */
+        #map { height: 260px; width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.2rem; z-index: 1; background-color: #e5e3df; }
 
         /* Activity Logs Table */
         .history-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
@@ -113,7 +123,7 @@
 
         /* Support Links Grid */
         .support-links { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.6rem; }
-        .btn-support-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: #fff; }
+        .btn-support-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: #fff; }
         .btn-whatsapp { background-color: #25D366; }
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
 
@@ -181,7 +191,7 @@
         </div>
     </header>
 
-    <!-- HERO BACKGROUND SLIDER -->
+    <!-- HERO SLIDER -->
     <div class="hero-slider">
         <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1350&q=80');"></div>
         <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1350&q=80');"></div>
@@ -209,10 +219,9 @@
                 <p id="errorMessage" class="error-msg" style="display: none;"></p>
             </section>
 
-            <!-- EXACT DYNAMIC RESULTS CARD FROM YOUR PREVIOUS DISPLAY CODE -->
+            <!-- RESULTS CARD -->
             <section id="resultsSection" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
                 
-                <!-- Dedicated PDF Receipt Header (Appears only on Download/Print) -->
                 <div class="print-header">
                     <div>
                         <h1><i class="fa-solid fa-box-archive"></i> ApexTrack Express</h1>
@@ -236,7 +245,7 @@
 
                 <hr>
 
-                <!-- Status Progress Bar -->
+                <!-- Progress Step Indicator -->
                 <div class="progress-container">
                     <div class="progress-bar" id="progressBar"></div>
                     <div class="step" id="step1">
@@ -286,7 +295,7 @@
                     </div>
                 </div>
 
-                <!-- Interactive Map View -->
+                <!-- Live Route Map -->
                 <h3 style="margin-bottom: 0.5rem; font-size: 0.95rem;"><i class="fa-solid fa-map-location-dot"></i> Live Route Map</h3>
                 <div id="map"></div>
 
@@ -314,10 +323,10 @@
                     <div style="margin-top: 0.8rem;">
                         <p style="font-size: 0.85rem; font-weight: 600; color: var(--gray);"><i class="fa-solid fa-headset"></i> Need Help with this Order?</p>
                         <div class="support-links">
-                            <a id="whatsappBtn" href="https://wa.me/2340000000000?text=Hello,%20I%20have%20an%20inquiry%20regarding%20my%20shipment" target="_blank" class="btn-support-link btn-whatsapp">
+                            <a id="whatsappBtn" href="#" target="_blank" class="btn-support-link btn-whatsapp">
                                 <i class="fa-brands fa-whatsapp"></i> WhatsApp Support
                             </a>
-                            <a id="instagramBtn" href="https://instagram.com/" target="_blank" class="btn-support-link btn-instagram">
+                            <a id="instagramBtn" href="#" target="_blank" class="btn-support-link btn-instagram">
                                 <i class="fa-brands fa-instagram"></i> Instagram DM
                             </a>
                         </div>
@@ -438,34 +447,45 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // HERO SLIDER
+        // Hero background image carousel
         let slideIndex = 0;
         const slides = document.querySelectorAll('.slide');
         setInterval(() => {
-            slides[slideIndex].classList.remove('active');
-            slideIndex = (slideIndex + 1) % slides.length;
-            slides[slideIndex].classList.add('active');
+            if(slides.length > 0) {
+                slides[slideIndex].classList.remove('active');
+                slideIndex = (slideIndex + 1) % slides.length;
+                slides[slideIndex].classList.add('active');
+            }
         }, 5000);
 
         let mapInstance = null;
 
-        // MULTIPLE INDIVIDUAL TRACKING DATABASE
+        // MULTIPLE ITEM TRACKING DATABASE
         const mockDatabase = {
             "ATG-11171": {
                 sender: "Maka",
                 recipient: "Kalap",
                 status: "Out for Delivery",
-                statusNote: "Food ",
+                statusNote: "Food",
+                stepLevel: 3, // 1: Placed, 2: In Transit, 3: Out for Delivery, 4: Delivered
                 edd: "May 30, 2027",
                 origin: "London",
                 destination: "Paris",
-                weight: "9919.9kg",
-                whatsapp: "‪447534868824‬",
-                instagram: ""
+                weight: "15.0 kg",
+                freight: "Air Express",
+                service: "Priority Air Cargo",
+                whatsapp: "2348000000000",
+                instagram: "apextrack_express",
+                coords: { origin: [51.5074, -0.1278], current: [48.8566, 2.3522], destination: [48.8566, 2.3522] },
+                history: [
+                    { time: "2026-07-23 08:30", location: "Paris Distribution Center", detail: "Loaded on courier vehicle for final delivery." },
+                    { time: "2026-07-22 19:10", location: "London Airport Hub", detail: "Departed sorting facility." },
+                    { time: "2026-07-21 11:00", location: "London Express Depot", detail: "Package received and registered." }
+                ]
             },
             "ATG-10001": {
-                sender: "John Miller (Lagos Office)",
-                recipient: "Sarah Williams (London)",
+                sender: "John Miller",
+                recipient: "Sarah Williams",
                 status: "In Transit",
                 statusNote: "",
                 stepLevel: 2,
@@ -475,32 +495,11 @@
                 weight: "12.5 kg",
                 freight: "Air Freight",
                 service: "Priority Air Express",
-                whatsapp: "2340000000000",
-                instagram: "",
+                whatsapp: "2348000000000",
+                instagram: "apextrack_express",
                 coords: { origin: [6.5244, 3.3792], current: [20.0000, 10.0000], destination: [51.5074, -0.1278] },
                 history: [
-                    { time: "2026-07-23 10:15", location: "Lagos Hub", detail: "Departed international sorting facility." },
-                    { time: "2026-07-22 16:30", location: "Ikeja Terminal", detail: "Customs clearance completed." }
-                ]
-            },
-            "ATG-10002": {
-                sender: "David Chen (Shanghai Port)",
-                recipient: "Michael Brown (Abuja)",
-                status: "On Hold",
-                statusNote: "Shipment is temporarily on hold pending customs documentation verification.",
-                stepLevel: 2,
-                edd: "August 05, 2026",
-                origin: "Shanghai, China",
-                destination: "Abuja, Nigeria",
-                weight: "45.0 kg",
-                freight: "Ocean Freight",
-                service: "Standard Maritime",
-                whatsapp: "2340000000000",
-                instagram: "",
-                coords: { origin: [31.2304, 121.4737], current: [6.5244, 3.3792], destination: [9.0765, 7.3986] },
-                history: [
-                    { time: "2026-07-23 09:00", location: "Lagos Port", detail: "Customs inspection hold placed." },
-                    { time: "2026-07-21 14:20", location: "Lagos Port", detail: "Discharged from vessel." }
+                    { time: "2026-07-23 10:15", location: "Lagos Hub", detail: "Departed international sorting facility." }
                 ]
             }
         };
@@ -515,8 +514,8 @@
             errorMsg.style.display = 'none';
             
             if (mockDatabase[trackingId]) {
-                renderTrackingData(trackingId, mockDatabase[trackingId]);
                 resultsSection.style.display = 'block';
+                renderTrackingData(trackingId, mockDatabase[trackingId]);
             } else {
                 resultsSection.style.display = 'none';
                 errorMsg.textContent = "Invalid Tracking ID.";
@@ -525,6 +524,7 @@
         });
 
         function renderTrackingData(id, data) {
+            // Fill metadata fields
             document.getElementById('displayTrackingId').textContent = id;
             document.getElementById('displayStatus').textContent = data.status;
             document.getElementById('displayEDD').textContent = data.edd;
@@ -536,6 +536,7 @@
             document.getElementById('displayFreight').textContent = data.freight;
             document.getElementById('displayService').textContent = data.service;
 
+            // Handle Status Note Box
             const noteBox = document.getElementById('statusNoteBox');
             if (data.statusNote && data.statusNote.trim() !== "") {
                 document.getElementById('displayStatusNote').textContent = data.statusNote;
@@ -544,6 +545,7 @@
                 noteBox.style.display = 'none';
             }
 
+            // Set Progress Bar Percentage & Blinking Step
             const progressPercents = [0, 0, 33, 66, 100];
             document.getElementById('progressBar').style.width = `${progressPercents[data.stepLevel]}%`;
 
@@ -558,39 +560,74 @@
                 }
             }
 
+            // Dynamically update WhatsApp & Instagram URLs
+            const waBtn = document.getElementById('whatsappBtn');
+            const igBtn = document.getElementById('instagramBtn');
+
+            if (data.whatsapp && data.whatsapp.trim() !== "") {
+                const cleanNum = data.whatsapp.replace(/[^0-9]/g, '');
+                waBtn.href = `https://wa.me/${cleanNum}?text=${encodeURIComponent('Hello, I have an inquiry regarding tracking ID: ' + id)}`;
+            } else {
+                waBtn.href = "#";
+            }
+
+            if (data.instagram && data.instagram.trim() !== "") {
+                const cleanIg = data.instagram.replace('@', '').trim();
+                igBtn.href = `https://instagram.com/${cleanIg}`;
+            } else {
+                igBtn.href = "#";
+            }
+
+            // Activity Logs Table Rendering
             const tableBody = document.getElementById('historyTableBody');
             tableBody.innerHTML = '';
             
-            if (data.history) {
+            if (data.history && data.history.length > 0) {
                 data.history.forEach(log => {
-                    const row = `
-                        <tr>
-                            <td>${log.time}</td>
-                            <td>${log.location}</td>
-                            <td>${log.detail}</td>
-                        </tr>
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${log.time}</strong></td>
+                        <td>${log.location}</td>
+                        <td>${log.detail}</td>
                     `;
-                    tableBody.insertAdjacentHTML('beforeend', row);
+                    tableBody.appendChild(row);
                 });
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--gray);">No activity logs available for this shipment yet.</td>
+                    </tr>
+                `;
             }
 
+            // Map Rendering Fix
             setTimeout(() => {
                 if (mapInstance !== null) {
                     mapInstance.remove();
+                    mapInstance = null;
                 }
 
-                mapInstance = L.map('map').setView(data.coords.current, 3);
+                const coords = data.coords || {
+                    origin: [51.5074, -0.1278],
+                    current: [48.8566, 2.3522],
+                    destination: [48.8566, 2.3522]
+                };
+
+                mapInstance = L.map('map').setView(coords.current, 5);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
                     attribution: '© OpenStreetMap'
                 }).addTo(mapInstance);
 
-                L.marker(data.coords.origin).addTo(mapInstance).bindPopup("<b>Origin:</b> " + data.origin);
-                L.marker(data.coords.current).addTo(mapInstance).bindPopup("<b>Current Status:</b> " + data.status).openPopup();
-                L.marker(data.coords.destination).addTo(mapInstance).bindPopup("<b>Destination:</b> " + data.destination);
+                L.marker(coords.origin).addTo(mapInstance).bindPopup("<b>Origin:</b> " + data.origin);
+                L.marker(coords.current).addTo(mapInstance).bindPopup("<b>Current Location:</b> " + data.status).openPopup();
+                L.marker(coords.destination).addTo(mapInstance).bindPopup("<b>Destination:</b> " + data.destination);
 
-                const latlngs = [data.coords.origin, data.coords.current, data.coords.destination];
+                const latlngs = [coords.origin, coords.current, coords.destination];
                 L.polyline(latlngs, { color: '#0052cc', weight: 3, dashArray: '6, 6' }).addTo(mapInstance);
+
+                mapInstance.invalidateSize();
             }, 300);
         }
     </script>
