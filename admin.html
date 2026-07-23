@@ -164,9 +164,9 @@
             msgBox.textContent = "Updating GitHub Repository...";
 
             try {
-                // YOUR GITHUB SETTINGS
-                const owner = "flight113";
-                const repo = "flight113.github.io"; 
+                // UPDATED FOR YOUR REPOSITORY
+                const owner = "Flight113";
+                const repo = "consignment-tracker"; 
                 const filePath = "index.html";
 
                 const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
@@ -174,7 +174,7 @@
                     headers: { 'Authorization': `token ${token}` }
                 });
 
-                if (!getRes.ok) throw new Error("Could not access repository. Check your Token and Repository settings.");
+                if (!getRes.ok) throw new Error("Could not access repository. Check your Token permissions for 'consignment-tracker'.");
 
                 const fileData = await getRes.json();
                 let fileContent = decodeURIComponent(escape(atob(fileData.content)));
