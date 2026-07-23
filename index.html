@@ -18,6 +18,8 @@
             --text-main: #172b4d;
             --text-sub: #5e6c84;
             --success: #36b37e;
+            --warning: #ffab00;
+            --danger: #de350b;
             --border-color: #e2e8f0;
         }
 
@@ -131,11 +133,25 @@
             }
         }
 
+        /* Red Error Indicator */
         .error-msg {
-            color: #de350b;
+            color: var(--danger);
             margin-top: 0.8rem;
-            font-weight: 500;
-            font-size: 0.9rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        /* Printable Receipt Header Logo */
+        .print-header {
+            display: none;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #000;
+        }
+
+        .print-header h1 {
+            font-size: 1.5rem;
+            color: #091e42;
         }
 
         /* Results Card */
@@ -166,7 +182,7 @@
 
         .edd-box { text-align: right; }
         .edd-box span { font-size: 0.75rem; color: var(--text-sub); display: block; }
-        .edd-box strong { font-size: 0.95rem; color: var(--text-main); }
+        .edd-box strong { font-size: 0.95rem; color: var(--primary-color); }
 
         hr {
             border: 0;
@@ -233,7 +249,6 @@
             color: #fff;
         }
 
-        /* Blinking Radar Pulse Animation */
         .step.blinking .step-icon {
             animation: pulse 1.5s infinite;
         }
@@ -246,6 +261,19 @@
 
         .step p { font-size: 0.7rem; color: var(--text-sub); }
         .step.active p { color: var(--text-main); font-weight: 600; }
+
+        /* Status Exception / Note Box */
+        .status-note-box {
+            background-color: #fff8e6;
+            border-left: 4px solid var(--warning);
+            padding: 0.8rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .status-note-box strong { color: #8a6d3b; }
 
         /* Meta Grid Layout */
         .meta-grid {
@@ -306,15 +334,35 @@
 
         .history-table th { background: #f8fafc; color: var(--text-sub); }
 
+        /* Support Links Grid */
+        .support-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.6rem;
+        }
+
+        .btn-support-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .btn-whatsapp { background-color: #25D366; }
+        .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+
         /* Action Buttons */
         .action-bar {
             display: flex;
             flex-direction: column;
             gap: 0.6rem;
-        }
-
-        @media (min-width: 500px) {
-            .action-bar { flex-direction: row; justify-content: space-between; }
         }
 
         .btn-action {
@@ -331,13 +379,14 @@
             border: 1px solid var(--border-color);
         }
 
-        .btn-print { background: #091e42; color: #fff; border: none; }
-        .btn-support { background: #eae6ff; color: #403294; border: 1px solid #c0b6f2; }
+        .btn-print { background: #091e42; color: #fff; border: none; width: 100%; }
 
+        /* Print/PDF Export Mode */
         @media print {
-            .navbar, .search-section, .action-bar, #map { display: none !important; }
-            body { background: white; }
-            .results-card { box-shadow: none; border: none; }
+            .navbar, .search-section, .action-bar, #map, .support-links { display: none !important; }
+            body { background: white; color: #000; }
+            .print-header { display: flex; justify-content: space-between; align-items: center; }
+            .results-card { box-shadow: none; border: none; padding: 0; }
         }
     </style>
 </head>
@@ -361,28 +410,41 @@
             <p>Enter your tracking or Waybill ID to get real-time delivery updates.</p>
             
             <form id="trackingForm" class="search-box">
-                <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID (e.g., ATG-10001)" required>
+                <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID" required>
                 <button type="submit">Track Parcel</button>
             </form>
+            <!-- Clean Red Error Message -->
             <p id="errorMessage" class="error-msg" style="display: none;"></p>
         </section>
 
         <!-- Dynamic Results Card -->
         <section id="resultsSection" class="results-card" style="display: none;">
+            
+            <!-- Dedicated PDF Receipt Header (Appears only on Download/Print) -->
+            <div class="print-header">
+                <div>
+                    <h1><i class="fa-solid fa-box-archive"></i> ApexTrack Express</h1>
+                    <p style="font-size: 0.8rem; color: #555;">Official Waybill & Shipment Receipt</p>
+                </div>
+                <div style="text-align: right; font-size: 0.8rem;">
+                    <p><strong>Generated Date:</strong> <span id="printDate">July 2026</span></p>
+                </div>
+            </div>
+
             <div class="results-header">
                 <div>
                     <h2>ID: <span id="displayTrackingId">--</span></h2>
                     <p class="status-badge" id="displayStatus">In Transit</p>
                 </div>
                 <div class="edd-box">
-                    <span>Estimated Delivery</span>
+                    <span>Expected Delivery Date</span>
                     <strong id="displayEDD">--</strong>
                 </div>
             </div>
 
             <hr>
 
-            <!-- Blinking Status Progress Bar -->
+            <!-- Status Progress Bar -->
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
                 <div class="step" id="step1">
@@ -403,6 +465,11 @@
                 </div>
             </div>
 
+            <!-- Custom Status Note Box (Appears when status is On Hold, Delayed, or Cancelled) -->
+            <div id="statusNoteBox" class="status-note-box">
+                <p><i class="fa-solid fa-circle-info"></i> <strong>Status Note:</strong> <span id="displayStatusNote">--</span></p>
+            </div>
+
             <!-- Route & Package Meta Info -->
             <div class="meta-grid">
                 <div class="meta-card">
@@ -421,7 +488,7 @@
                     <p><strong>Freight:</strong> <span id="displayFreight">--</span></p>
                 </div>
                 <div class="meta-card">
-                    <h3><i class="fa-solid fa-shield-halved"></i> Service Type</h3>
+                    <h3><i class="fa-solid fa-shield-halved"></i> Service Details</h3>
                     <p><strong>Service:</strong> <span id="displayService">Express Cargo</span></p>
                     <p><strong>Payment Status:</strong> <span style="color: var(--success); font-weight: 600;">Paid</span></p>
                 </div>
@@ -446,14 +513,24 @@
                 </table>
             </div>
 
-            <!-- Action Bar (Invoice Download & Support) -->
+            <!-- Action Bar & Multi-Channel Contact Support -->
             <div class="action-bar">
                 <button onclick="window.print()" class="btn-action btn-print">
-                    <i class="fa-solid fa-file-arrow-down"></i> Download Invoice / Waybill
+                    <i class="fa-solid fa-file-arrow-down"></i> Download Invoice / Official Receipt
                 </button>
-                <a href="https://wa.me/?text=Hello%20Support,%20I%20have%20an%20inquiry%20regarding%20my%20shipment" target="_blank" class="btn-action btn-support">
-                    <i class="fa-solid fa-headset"></i> Customer Support / Live Chat
-                </a>
+                
+                <div style="margin-top: 0.8rem;">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-sub);"><i class="fa-solid fa-headset"></i> Need Help with this Order?</p>
+                    <div class="support-links">
+                        <!-- EDIT YOUR WHATSAPP AND INSTAGRAM LINKS HERE -->
+                        <a href="https://wa.me/2340000000000?text=Hello,%20I%20have%20an%20inquiry%20regarding%20my%20shipment" target="_blank" class="btn-support-link btn-whatsapp">
+                            <i class="fa-brands fa-whatsapp"></i> WhatsApp Support
+                        </a>
+                        <a href="https://instagram.com/" target="_blank" class="btn-support-link btn-instagram">
+                            <i class="fa-brands fa-instagram"></i> Instagram DM
+                        </a>
+                    </div>
+                </div>
             </div>
 
         </section>
@@ -465,12 +542,13 @@
     <script>
         let mapInstance = null;
 
-        // MULTIPLE INDIVIDUAL TRACKING DATABASE (10 UNIQUE PROFILES)
+        // MULTIPLE INDIVIDUAL TRACKING DATABASE
         const mockDatabase = {
             "ATG-10001": {
                 sender: "John Miller (Lagos Office)",
                 recipient: "Sarah Williams (London)",
                 status: "In Transit",
+                statusNote: "", // Blank if normal
                 stepLevel: 2, // 1: Placed, 2: In Transit, 3: Out for Delivery, 4: Delivered
                 edd: "July 28, 2026",
                 origin: "Lagos, Nigeria",
@@ -487,17 +565,18 @@
             "ATG-10002": {
                 sender: "David Chen (Shanghai Port)",
                 recipient: "Michael Brown (Abuja)",
-                status: "Out for Delivery",
-                stepLevel: 3,
-                edd: "July 24, 2026",
+                status: "On Hold",
+                statusNote: "Shipment is temporarily on hold pending customs documentation verification.",
+                stepLevel: 2,
+                edd: "August 05, 2026",
                 origin: "Shanghai, China",
                 destination: "Abuja, Nigeria",
                 weight: "45.0 kg",
                 freight: "Ocean Freight",
                 service: "Standard Maritime",
-                coords: { origin: [31.2304, 121.4737], current: [9.0765, 7.3986], destination: [9.0765, 7.3986] },
+                coords: { origin: [31.2304, 121.4737], current: [6.5244, 3.3792], destination: [9.0765, 7.3986] },
                 history: [
-                    { time: "2026-07-23 08:00", location: "Abuja Depot", detail: "Loaded on courier vehicle for final delivery." },
+                    { time: "2026-07-23 09:00", location: "Lagos Port", detail: "Customs inspection hold placed." },
                     { time: "2026-07-21 14:20", location: "Lagos Port", detail: "Discharged from vessel." }
                 ]
             },
@@ -505,6 +584,7 @@
                 sender: "Emma Watson (New York Hub)",
                 recipient: "Grace Johnson (Toronto)",
                 status: "Delivered",
+                statusNote: "",
                 stepLevel: 4,
                 edd: "July 22, 2026",
                 origin: "New York, USA",
@@ -514,120 +594,7 @@
                 service: "Express Ground",
                 coords: { origin: [40.7128, -74.0060], current: [43.6532, -79.3832], destination: [43.6532, -79.3832] },
                 history: [
-                    { time: "2026-07-22 15:45", location: "Toronto Address", detail: "Package delivered and signed by Recipient." },
-                    { time: "2026-07-22 09:10", location: "Toronto Facility", detail: "Out for delivery." }
-                ]
-            },
-            "ATG-10004": {
-                sender: "Apex Logistics (Frankfurt)",
-                recipient: "Ahmed Hassan (Dubai)",
-                status: "Order Placed",
-                stepLevel: 1,
-                edd: "August 02, 2026",
-                origin: "Frankfurt, Germany",
-                destination: "Dubai, UAE",
-                weight: "8.7 kg",
-                freight: "Air Freight",
-                service: "Economy Air",
-                coords: { origin: [50.1109, 8.6821], current: [50.1109, 8.6821], destination: [25.2048, 55.2708] },
-                history: [
-                    { time: "2026-07-23 11:00", location: "Frankfurt Depot", detail: "Shipment documentation verified and created." }
-                ]
-            },
-            "ATG-10005": {
-                sender: "Kowloon Trading (Hong Kong)",
-                recipient: "Peter Parker (Sydney)",
-                status: "In Transit",
-                stepLevel: 2,
-                edd: "July 30, 2026",
-                origin: "Hong Kong",
-                destination: "Sydney, Australia",
-                weight: "22.1 kg",
-                freight: "Ocean Express",
-                service: "Container Freight",
-                coords: { origin: [22.3193, 114.1694], current: [0.0000, 120.0000], destination: [-33.8688, 151.2093] },
-                history: [
-                    { time: "2026-07-20 18:00", location: "Hong Kong Port", detail: "Vessel departed container terminal." }
-                ]
-            },
-            "ATG-10006": {
-                sender: "Carlos Silva (Sao Paulo)",
-                recipient: "Elena Rostova (Madrid)",
-                status: "In Transit",
-                stepLevel: 2,
-                edd: "July 29, 2026",
-                origin: "Sao Paulo, Brazil",
-                destination: "Madrid, Spain",
-                weight: "6.4 kg",
-                freight: "Air Freight",
-                service: "International Priority",
-                coords: { origin: [-23.5505, -46.6333], current: [15.0000, -25.0000], destination: [40.4168, -3.7038] },
-                history: [
-                    { time: "2026-07-22 22:30", location: "Guarulhos Airport", detail: "Flight departed." }
-                ]
-            },
-            "ATG-10007": {
-                sender: "Tokyo Tech Ltd (Tokyo)",
-                recipient: "Robert Davis (Chicago)",
-                status: "Out for Delivery",
-                stepLevel: 3,
-                edd: "July 24, 2026",
-                origin: "Tokyo, Japan",
-                destination: "Chicago, USA",
-                weight: "1.8 kg",
-                freight: "Air Express",
-                service: "Next Day Cargo",
-                coords: { origin: [35.6762, 139.6503], current: [41.8781, -87.6298], destination: [41.8781, -87.6298] },
-                history: [
-                    { time: "2026-07-23 07:15", location: "Chicago Hub", detail: "Driver dispatched for delivery." }
-                ]
-            },
-            "ATG-10008": {
-                sender: "Sahara Cargo (Cairo)",
-                recipient: "Fatima Ali (Riyadh)",
-                status: "Delivered",
-                stepLevel: 4,
-                edd: "July 21, 2026",
-                origin: "Cairo, Egypt",
-                destination: "Riyadh, Saudi Arabia",
-                weight: "18.0 kg",
-                freight: "Road Courier",
-                service: "Standard Overland",
-                coords: { origin: [30.0444, 31.2357], current: [24.7136, 46.6753], destination: [24.7136, 46.6753] },
-                history: [
-                    { time: "2026-07-21 16:00", location: "Riyadh Destination", detail: "Package handed to recipient." }
-                ]
-            },
-            "ATG-10009": {
-                sender: "Nairobi Freight (Nairobi)",
-                recipient: "Samuel Oko (Port Harcourt)",
-                status: "In Transit",
-                stepLevel: 2,
-                edd: "July 27, 2026",
-                origin: "Nairobi, Kenya",
-                destination: "Port Harcourt, Nigeria",
-                weight: "29.3 kg",
-                freight: "Air Freight",
-                service: "Regional Express",
-                coords: { origin: [-1.2921, 36.8219], current: [4.0000, 20.0000], destination: [4.8156, 7.0498] },
-                history: [
-                    { time: "2026-07-23 05:00", location: "JKIA Airport", detail: "Transit flight departed." }
-                ]
-            },
-            "ATG-10010": {
-                sender: "Paris Luxe (Paris)",
-                recipient: "Linda Green (Los Angeles)",
-                status: "Order Placed",
-                stepLevel: 1,
-                edd: "August 01, 2026",
-                origin: "Paris, France",
-                destination: "Los Angeles, USA",
-                weight: "5.0 kg",
-                freight: "Air Freight",
-                service: "VIP Secure Cargo",
-                coords: { origin: [48.8566, 2.3522], current: [48.8566, 2.3522], destination: [34.0522, -118.2437] },
-                history: [
-                    { time: "2026-07-23 12:30", location: "CDG Airport", detail: "Awaiting customs export clearance." }
+                    { time: "2026-07-22 15:45", location: "Toronto Address", detail: "Package delivered and signed by Recipient." }
                 ]
             }
         };
@@ -646,7 +613,7 @@
                 resultsSection.style.display = 'block';
             } else {
                 resultsSection.style.display = 'none';
-                errorMsg.textContent = "Tracking ID not found. Use IDs ATG-10001 through ATG-10010.";
+                errorMsg.textContent = "Invalid Tracking ID.";
                 errorMsg.style.display = 'block';
             }
         });
@@ -664,7 +631,16 @@
             document.getElementById('displayFreight').textContent = data.freight;
             document.getElementById('displayService').textContent = data.service;
 
-            // Set Progress Bar Percentage & Blinking Step Indicator
+            // Handle Status Note Box
+            const noteBox = document.getElementById('statusNoteBox');
+            if (data.statusNote && data.statusNote.trim() !== "") {
+                document.getElementById('displayStatusNote').textContent = data.statusNote;
+                noteBox.style.display = 'block';
+            } else {
+                noteBox.style.display = 'none';
+            }
+
+            // Set Progress Bar Percentage & Blinking Indicator
             const progressPercents = [0, 0, 33, 66, 100];
             document.getElementById('progressBar').style.width = `${progressPercents[data.stepLevel]}%`;
 
@@ -679,7 +655,7 @@
                 }
             }
 
-            // Fill Activity History Table
+            // Fill Activity Logs Table
             const tableBody = document.getElementById('historyTableBody');
             tableBody.innerHTML = '';
             
@@ -708,7 +684,7 @@
 
                 // Add Pins
                 L.marker(data.coords.origin).addTo(mapInstance).bindPopup("<b>Origin:</b> " + data.origin);
-                L.marker(data.coords.current).addTo(mapInstance).bindPopup("<b>Current Location:</b> " + data.status).openPopup();
+                L.marker(data.coords.current).addTo(mapInstance).bindPopup("<b>Current Status:</b> " + data.status).openPopup();
                 L.marker(data.coords.destination).addTo(mapInstance).bindPopup("<b>Destination:</b> " + data.destination);
 
                 // Draw Path Line
