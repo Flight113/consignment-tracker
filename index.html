@@ -1,1 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Cargo & Consignment Tracking</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-box-archive"></i>
+            <span>Apex<strong>Track</strong></span>
+        </div>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Services</a>
+            <a href="#">Support</a>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        
+        <!-- Hero Search Section -->
+        <section class="search-section">
+            <h1>Track Your Shipment</h1>
+            <p>Enter your tracking or Waybill ID to get real-time delivery status updates.</p>
+            
+            <form id="trackingForm" class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID (e.g., ATG-98765)" required>
+                <button type="submit">Track Parcel</button>
+            </form>
+            <p id="errorMessage" class="error-msg" style="display: none;"></p>
+        </section>
+
+        <!-- Tracking Results (Hidden by Default) -->
+        <section id="resultsSection" class="results-card" style="display: none;">
+            
+            <div class="results-header">
+                <div>
+                    <h2>Tracking ID: <span id="displayTrackingId">--</span></h2>
+                    <p class="status-badge" id="displayStatus">In Transit</p>
+                </div>
+                <div class="edd-box">
+                    <span>Estimated Delivery</span>
+                    <strong id="displayEDD">--</strong>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Status Progress Timeline -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="step active" id="step1">
+                    <div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                    <p>Order Placed</p>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-icon"><i class="fa-solid fa-warehouse"></i></div>
+                    <p>In Transit</p>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                    <p>Out for Delivery</p>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
+                    <p>Delivered</p>
+                </div>
+            </div>
+
+            <!-- Meta Information Grid -->
+            <div class="meta-grid">
+                <div class="meta-card">
+                    <h3><i class="fa-solid fa-location-dot"></i> Origin & Destination</h3>
+                    <p><strong>Origin:</strong> <span id="displayOrigin">--</span></p>
+                    <p><strong>Destination:</strong> <span id="displayDestination">--</span></p>
+                </div>
+                <div class="meta-card">
+                    <h3><i class="fa-solid fa-cube"></i> Package Details</h3>
+                    <p><strong>Weight:</strong> <span id="displayWeight">--</span></p>
+                    <p><strong>Freight Type:</strong> <span id="displayFreight">--</span></p>
+                </div>
+            </div>
+
+            <!-- Activity Logs Table -->
+            <div class="history-section">
+                <h3>Activity Logs</h3>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Status Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Dynamic rows rendered here -->
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
 
