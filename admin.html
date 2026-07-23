@@ -3,71 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexTrack Admin Management Panel</title>
+    <title>ApexTrack Admin Console</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #0052cc;
-            --bg: #f4f6f9;
-            --card: #ffffff;
-            --text: #172b4d;
-            --border: #e2e8f0;
-            --danger: #de350b;
-            --success: #36b37e;
-        }
-
+        :root { --primary: #0052cc; --bg: #f4f6f9; --card: #ffffff; --text: #172b4d; --border: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { background: var(--bg); color: var(--text); padding: 1.5rem; }
-
-        .admin-card {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--card);
-            padding: 1.5rem;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        h2 { font-size: 1.3rem; margin-bottom: 1rem; color: #091e42; }
+        .admin-card { max-width: 800px; margin: 0 auto; background: var(--card); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #091e42; }
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
-        input, select {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
+        input, select { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
         @media(min-width: 600px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-
-        .btn {
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            width: 100%;
-            font-size: 0.95rem;
-        }
-
-        .btn-primary { background: var(--primary); color: #fff; }
-
-        .status-msg {
-            margin-top: 1rem;
-            padding: 0.8rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: none;
-        }
+        .btn { padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; width: 100%; font-size: 0.95rem; background: var(--primary); color: #fff; }
+        .status-msg { margin-top: 1rem; padding: 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; display: none; }
         .msg-success { background: #e3fcef; color: #006644; }
         .msg-error { background: #ffebe6; color: #bf2600; }
     </style>
@@ -75,18 +25,17 @@
 <body>
 
     <div class="admin-card">
-        <h2><i class="fa-solid fa-user-gear"></i> ApexTrack Admin Panel</h2>
+        <h2><i class="fa-solid fa-user-gear"></i> ApexTrack Control Console</h2>
         
-        <!-- GitHub Token Input -->
+        <!-- TOKEN ENTRY -->
         <div class="form-group" style="background: #eae6ff; padding: 1rem; border-radius: 6px;">
-            <label style="color: #403294;"><i class="fa-solid fa-key"></i> GitHub Personal Access Token</label>
-            <input type="password" id="ghToken" placeholder="Paste your github_pat_... token here">
-            <small style="font-size: 0.75rem; color: #505f79;">Token is securely saved in your local browser cache.</small>
+            <label style="color: #403294;"><i class="fa-solid fa-key"></i> Personal Access Token</label>
+            <input type="password" id="ghToken" placeholder="Paste ghp_... token here">
         </div>
 
         <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border);">
 
-        <h2>Add / Update Shipment Profile</h2>
+        <h2>Shipment Details & Override</h2>
         
         <div class="grid-2">
             <div class="form-group">
@@ -96,20 +45,18 @@
             <div class="form-group">
                 <label>Current Status</label>
                 <select id="trackStatus">
-                    <option value="Order Placed">Order Placed (Step 1)</option>
-                    <option value="In Transit" selected>In Transit (Step 2)</option>
-                    <option value="Out for Delivery">Out for Delivery (Step 3)</option>
-                    <option value="Delivered">Delivered (Step 4)</option>
-                    <option value="On Hold">On Hold (Exception Note)</option>
-                    <option value="Delayed">Delayed (Exception Note)</option>
-                    <option value="Cancelled">Cancelled (Exception Note)</option>
+                    <option value="In Transit" selected>In Transit</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="On Hold">On Hold (Exception)</option>
+                    <option value="Delayed">Delayed (Exception)</option>
                 </select>
             </div>
         </div>
 
         <div class="form-group">
-            <label>Status Note / Exception Reason (Optional)</label>
-            <input type="text" id="statusNote" placeholder="e.g. Delayed due to customs inspection.">
+            <label>Status Description / Notice (Optional)</label>
+            <input type="text" id="statusNote" placeholder="e.g. Package clearing customs inspection hub.">
         </div>
 
         <div class="grid-2">
@@ -122,24 +69,36 @@
                 <input type="text" id="recipientName" placeholder="e.g. Sarah Williams (London)">
             </div>
             <div class="form-group">
-                <label>Origin</label>
+                <label>Origin City</label>
                 <input type="text" id="originCity" placeholder="e.g. Lagos, Nigeria">
             </div>
             <div class="form-group">
-                <label>Destination</label>
+                <label>Destination City</label>
                 <input type="text" id="destinationCity" placeholder="e.g. London, UK">
             </div>
             <div class="form-group">
                 <label>Package Weight</label>
-                <input type="text" id="pkgWeight" placeholder="e.g. 12.5 kg">
+                <input type="text" id="pkgWeight" placeholder="e.g. 14.5 kg">
             </div>
             <div class="form-group">
                 <label>Expected Delivery Date</label>
-                <input type="text" id="eddDate" placeholder="e.g. July 28, 2026">
+                <input type="text" id="eddDate" placeholder="e.g. August 12, 2026">
             </div>
         </div>
 
-        <button type="button" onclick="saveShipmentData()" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save & Publish Changes Live</button>
+        <h2 style="margin-top: 1rem;">Social & Contact Override</h2>
+        <div class="grid-2">
+            <div class="form-group">
+                <label><i class="fa-brands fa-whatsapp"></i> WhatsApp Contact Number (Optional)</label>
+                <input type="text" id="waNumber" placeholder="e.g. 2348012345678 (Leave blank to hide button)">
+            </div>
+            <div class="form-group">
+                <label><i class="fa-brands fa-instagram"></i> Instagram Username (Optional)</label>
+                <input type="text" id="igHandle" placeholder="e.g. apextrack_global (Leave blank to hide button)">
+            </div>
+        </div>
+
+        <button type="button" onclick="saveShipmentData()" class="btn"><i class="fa-solid fa-floppy-disk"></i> Save & Publish Changes Live</button>
 
         <div id="statusMessage" class="status-msg"></div>
     </div>
@@ -153,15 +112,14 @@
             const msgBox = document.getElementById('statusMessage');
 
             if (!token || !trackId) {
-                alert("Please enter both your GitHub Access Token and a valid Tracking ID.");
+                alert("Please enter both your Access Token and a Tracking ID.");
                 return;
             }
 
             localStorage.setItem('apex_gh_token', token);
-
             msgBox.style.display = 'block';
             msgBox.className = 'status-msg';
-            msgBox.textContent = "Updating GitHub Repository...";
+            msgBox.textContent = "Updating Repository...";
 
             try {
                 const owner = "Flight113";
@@ -173,14 +131,10 @@
                     headers: { 'Authorization': `token ${token}` }
                 });
 
-                if (!getRes.ok) throw new Error("Could not fetch index.html. Check repo settings.");
+                if (!getRes.ok) throw new Error("Could not fetch index.html.");
 
                 const fileData = await getRes.json();
                 let fileContent = decodeURIComponent(escape(atob(fileData.content)));
-
-                if (!fileContent.includes("mockDatabase")) {
-                    throw new Error("Could not find 'mockDatabase' in index.html. Please verify your index.html code.");
-                }
 
                 const newShipmentObject = `
             "${trackId}": {
@@ -188,21 +142,15 @@
                 recipient: "${document.getElementById('recipientName').value}",
                 status: "${document.getElementById('trackStatus').value}",
                 statusNote: "${document.getElementById('statusNote').value}",
-                stepLevel: ${getStepLevel(document.getElementById('trackStatus').value)},
                 edd: "${document.getElementById('eddDate').value}",
                 origin: "${document.getElementById('originCity').value}",
                 destination: "${document.getElementById('destinationCity').value}",
                 weight: "${document.getElementById('pkgWeight').value}",
-                freight: "Air Freight",
-                service: "Priority Air Express",
-                coords: { origin: [6.5244, 3.3792], current: [20.0000, 10.0000], destination: [51.5074, -0.1278] },
-                history: [
-                    { time: "${new Date().toISOString().slice(0,16).replace('T',' ')}", location: "${document.getElementById('originCity').value}", detail: "Status updated to ${document.getElementById('trackStatus').value} via Admin Console." }
-                ]
+                whatsapp: "${document.getElementById('waNumber').value}",
+                instagram: "${document.getElementById('igHandle').value}"
             },`;
 
                 fileContent = fileContent.replace(/const\s+mockDatabase\s*=\s*\{/, `const mockDatabase = {${newShipmentObject}`);
-
                 const updatedContentEncoded = btoa(unescape(encodeURIComponent(fileContent)));
 
                 const putRes = await fetch(getUrl, {
@@ -220,24 +168,16 @@
 
                 if (putRes.ok) {
                     msgBox.className = 'status-msg msg-success';
-                    msgBox.textContent = `Success! Tracking ID ${trackId} published live.`;
+                    msgBox.textContent = `Success! Tracking ID ${trackId} updated live.`;
                 } else {
                     const errData = await putRes.json();
-                    throw new Error(`GitHub Write Error: ${errData.message || 'Check Token Write Permissions.'}`);
+                    throw new Error(errData.message || "Failed to save changes.");
                 }
 
             } catch (err) {
                 msgBox.className = 'status-msg msg-error';
                 msgBox.textContent = err.message;
             }
-        }
-
-        function getStepLevel(status) {
-            if (status.includes("Placed")) return 1;
-            if (status.includes("Transit") || status.includes("Hold") || status.includes("Delayed")) return 2;
-            if (status.includes("Out for Delivery")) return 3;
-            if (status.includes("Delivered")) return 4;
-            return 2;
         }
     </script>
 </body>
