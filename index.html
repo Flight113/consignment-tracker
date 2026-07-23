@@ -3,13 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Cargo & Consignment Tracking</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>ApexTrack - Global Consignment Tracking</title>
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0052cc;
+            --primary-hover: #003d99;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #172b4d;
+            --text-sub: #5e6c84;
+            --success: #36b37e;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Top Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #091e42;
+            padding: 1rem 1.2rem;
+            color: #fff;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo strong { color: #4c9aff; }
+
+        .navbar nav a {
+            color: #deebff;
+            text-decoration: none;
+            margin-left: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 800px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .search-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-section h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .search-section p {
+            color: var(--text-sub);
+            margin-bottom: 1.2rem;
+            font-size: 0.9rem;
+        }
+
+        /* Search Box Layout */
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 500px) {
+            .search-box {
+                flex-direction: row;
+                gap: 0;
+            }
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        @media (min-width: 500px) {
+            .search-box input {
+                border-radius: 8px 0 0 8px;
+            }
+        }
+
+        .search-box button {
+            padding: 0.9rem 1.5rem;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media (min-width: 500px) {
+            .search-box button {
+                border-radius: 0 8px 8px 0;
+            }
+        }
+
+        .error-msg {
+            color: #de350b;
+            margin-top: 0.8rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Results Display Card */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #deebff;
+            color: var(--primary-color);
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+        }
+
+        .edd-box {
+            text-align: right;
+        }
+
+        .edd-box span {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            display: block;
+        }
+
+        .edd-box strong {
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 1.2rem 0;
+        }
+
+        /* Status Progress Bar */
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 1.8rem 0;
+        }
+
+        .progress-container::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            z-index: 1;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 18px;
+            left: 0;
+            height: 4px;
+            background: var(--success);
+            z-index: 1;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 0 0.2rem;
+        }
+
+        .step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.3rem;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+        }
+
+        .step.active .step-icon {
+            border-color: var(--success);
+            background: var(--success);
+            color: #fff;
+        }
+
+        .step p {
+            font-size: 0.7rem;
+            color: var(--text-sub);
+        }
+
+        .step.active p { color: var(--text-main); font-weight: 600; }
+
+        /* Consignment Details Block */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        @media (min-width: 600px) {
+            .meta-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .meta-card {
+            background: #f8fafc;
+            padding: 0.9rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-card h3 {
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+            color: var(--text-sub);
+        }
+
+        .meta-card p {
+            font-size: 0.85rem;
+        }
+
+        /* Activity Logs Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th, .history-table td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+        }
+
+        .history-table th {
+            background: #f8fafc;
+            color: var(--text-sub);
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Navigation Header -->
     <header class="navbar">
         <div class="logo">
             <i class="fa-solid fa-box-archive"></i>
@@ -22,28 +312,24 @@
         </nav>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Section -->
     <main class="container">
-        
-        <!-- Hero Search Section -->
         <section class="search-section">
             <h1>Track Your Shipment</h1>
-            <p>Enter your tracking or Waybill ID to get real-time delivery status updates.</p>
+            <p>Enter your tracking or Waybill ID to get real-time delivery updates.</p>
             
             <form id="trackingForm" class="search-box">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" id="trackingIdInput" placeholder="Enter Tracking ID (e.g., ATG-98765)" required>
                 <button type="submit">Track Parcel</button>
             </form>
             <p id="errorMessage" class="error-msg" style="display: none;"></p>
         </section>
 
-        <!-- Tracking Results (Hidden by Default) -->
+        <!-- Tracking Results Card -->
         <section id="resultsSection" class="results-card" style="display: none;">
-            
             <div class="results-header">
                 <div>
-                    <h2>Tracking ID: <span id="displayTrackingId">--</span></h2>
+                    <h2>ID: <span id="displayTrackingId">--</span></h2>
                     <p class="status-badge" id="displayStatus">In Transit</p>
                 </div>
                 <div class="edd-box">
@@ -54,12 +340,12 @@
 
             <hr>
 
-            <!-- Status Progress Timeline -->
+            <!-- Step Progress Indicator -->
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
-                <div class="step active" id="step1">
+                <div class="step" id="step1">
                     <div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div>
-                    <p>Order Placed</p>
+                    <p>Placed</p>
                 </div>
                 <div class="step" id="step2">
                     <div class="step-icon"><i class="fa-solid fa-warehouse"></i></div>
@@ -75,23 +361,23 @@
                 </div>
             </div>
 
-            <!-- Meta Information Grid -->
+            <!-- Details Section -->
             <div class="meta-grid">
                 <div class="meta-card">
-                    <h3><i class="fa-solid fa-location-dot"></i> Origin & Destination</h3>
+                    <h3><i class="fa-solid fa-location-dot"></i> Route</h3>
                     <p><strong>Origin:</strong> <span id="displayOrigin">--</span></p>
                     <p><strong>Destination:</strong> <span id="displayDestination">--</span></p>
                 </div>
                 <div class="meta-card">
                     <h3><i class="fa-solid fa-cube"></i> Package Details</h3>
                     <p><strong>Weight:</strong> <span id="displayWeight">--</span></p>
-                    <p><strong>Freight Type:</strong> <span id="displayFreight">--</span></p>
+                    <p><strong>Freight:</strong> <span id="displayFreight">--</span></p>
                 </div>
             </div>
 
-            <!-- Activity Logs Table -->
+            <!-- Event Log Table -->
             <div class="history-section">
-                <h3>Activity Logs</h3>
+                <h3 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Activity Logs</h3>
                 <table class="history-table">
                     <thead>
                         <tr>
@@ -100,17 +386,89 @@
                             <th>Status Description</th>
                         </tr>
                     </thead>
-                    <tbody id="historyTableBody">
-                        <!-- Dynamic rows rendered here -->
-                    </tbody>
+                    <tbody id="historyTableBody"></tbody>
                 </table>
             </div>
-
         </section>
-
     </main>
 
-    <script src="js/main.js"></script>
+    <!-- Interactive JavaScript Logic -->
+    <script>
+        // Sample tracking database
+        const mockDatabase = {
+            "ATG-98765": {
+                status: "In Transit",
+                stepLevel: 2, // Steps 1 to 4
+                edd: "July 28, 2026",
+                origin: "Lagos, Nigeria",
+                destination: "London, UK",
+                weight: "14.5 kg",
+                freight: "Air Freight",
+                history: [
+                    { time: "2026-07-23 10:15", location: "Lagos Hub", detail: "Departed international sorting facility." },
+                    { time: "2026-07-22 16:30", location: "Ikeja Terminal", detail: "Customs clearance completed." },
+                    { time: "2026-07-21 09:00", location: "Lagos Depot", detail: "Consignment received and processed." }
+                ]
+            }
+        };
+
+        document.getElementById('trackingForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const trackingId = document.getElementById('trackingIdInput').value.trim().toUpperCase();
+            const errorMsg = document.getElementById('errorMessage');
+            const resultsSection = document.getElementById('resultsSection');
+
+            errorMsg.style.display = 'none';
+            
+            if (mockDatabase[trackingId]) {
+                renderTrackingData(trackingId, mockDatabase[trackingId]);
+                resultsSection.style.display = 'block';
+            } else {
+                resultsSection.style.display = 'none';
+                errorMsg.textContent = "Tracking ID not found. Try searching for ATG-98765.";
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        function renderTrackingData(id, data) {
+            document.getElementById('displayTrackingId').textContent = id;
+            document.getElementById('displayStatus').textContent = data.status;
+            document.getElementById('displayEDD').textContent = data.edd;
+            document.getElementById('displayOrigin').textContent = data.origin;
+            document.getElementById('displayDestination').textContent = data.destination;
+            document.getElementById('displayWeight').textContent = data.weight;
+            document.getElementById('displayFreight').textContent = data.freight;
+
+            // Set Progress Bar Percentage
+            const progressPercents = [0, 0, 33, 66, 100];
+            document.getElementById('progressBar').style.width = `${progressPercents[data.stepLevel]}%`;
+
+            // Active Steps
+            for (let i = 1; i <= 4; i++) {
+                const stepElem = document.getElementById(`step${i}`);
+                if (i <= data.stepLevel) {
+                    stepElem.classList.add('active');
+                } else {
+                    stepElem.classList.remove('active');
+                }
+            }
+
+            // Fill History Logs
+            const tableBody = document.getElementById('historyTableBody');
+            tableBody.innerHTML = '';
+            
+            data.history.forEach(log => {
+                const row = `
+                    <tr>
+                        <td>${log.time}</td>
+                        <td>${log.location}</td>
+                        <td>${log.detail}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+    </script>
 </body>
 </html>
-
