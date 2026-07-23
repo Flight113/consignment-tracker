@@ -164,7 +164,6 @@
             msgBox.textContent = "Updating GitHub Repository...";
 
             try {
-                // UPDATED FOR YOUR REPOSITORY
                 const owner = "Flight113";
                 const repo = "consignment-tracker"; 
                 const filePath = "index.html";
@@ -174,10 +173,14 @@
                     headers: { 'Authorization': `token ${token}` }
                 });
 
-                if (!getRes.ok) throw new Error("Could not access repository. Check your Token permissions for 'consignment-tracker'.");
+                if (!getRes.ok) throw new Error("Could not fetch index.html. Check repo settings.");
 
                 const fileData = await getRes.json();
                 let fileContent = decodeURIComponent(escape(atob(fileData.content)));
+
+                if (!fileContent.includes("mockDatabase")) {
+                    throw new Error("Could not find 'mockDatabase' in index.html. Please verify your index.html code.");
+                }
 
                 const newShipmentObject = `
             "${trackId}": {
@@ -198,7 +201,7 @@
                 ]
             },`;
 
-                fileContent = fileContent.replace('const mockDatabase = {', `const mockDatabase = {${newShipmentObject}`);
+                fileContent = fileContent.replace(/const\s+mockDatabase\s*=\s*\{/, `const mockDatabase = {${newShipmentObject}`);
 
                 const updatedContentEncoded = btoa(unescape(encodeURIComponent(fileContent)));
 
@@ -219,7 +222,8 @@
                     msgBox.className = 'status-msg msg-success';
                     msgBox.textContent = `Success! Tracking ID ${trackId} published live.`;
                 } else {
-                    throw new Error("Failed to update repository.");
+                    const errData = await putRes.json();
+                    throw new Error(`GitHub Write Error: ${errData.message || 'Check Token Write Permissions.'}`);
                 }
 
             } catch (err) {
