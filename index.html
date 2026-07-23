@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ApexTrack Global Logistics | Express Freight & Package Tracking</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --primary: #0052cc;
@@ -18,7 +20,7 @@
             --success: #36b37e;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: var(--light); color: var(--dark); line-height: 1.6; }
 
         /* HEADER & NAV */
@@ -27,64 +29,71 @@
         .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
         .logo i { color: var(--secondary); }
         .nav-links { display: flex; gap: 1.5rem; list-style: none; }
-        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 0.95rem; transition: 0.2s; }
-        .nav-links a:hover { color: var(--primary); }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 0.95rem; }
 
         /* HERO SLIDER */
-        .hero-slider { position: relative; height: 420px; overflow: hidden; background: #000; }
+        .hero-slider { position: relative; height: 350px; overflow: hidden; background: #000; }
         .slide { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; transition: opacity 1s ease-in-out; background-size: cover; background-position: center; }
         .slide.active { opacity: 1; }
         .slide-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(9,30,66,0.65) 0%, rgba(9,30,66,0.85) 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: var(--white); padding: 2rem; }
         .hero-content { max-width: 800px; }
-        .hero-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.8rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .hero-content p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 1.5rem; }
+        .hero-content h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
 
         /* SEARCH TRACKER CARD */
-        .tracker-container { max-width: 850px; margin: -50px auto 3rem; padding: 0 1.5rem; position: relative; z-index: 100; }
-        .tracker-card { background: var(--white); padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .tracker-container { max-width: 850px; margin: -40px auto 3rem; padding: 0 1rem; position: relative; z-index: 100; }
+        .tracker-card { background: var(--white); padding: 1.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .search-box { display: flex; gap: 0.5rem; margin-top: 1rem; }
-        .search-box input { flex: 1; padding: 1rem 1.2rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; }
+        .search-box input { flex: 1; padding: 0.9rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; }
         .search-box input:focus { border-color: var(--primary); }
-        .search-box button { background: var(--primary); color: var(--white); border: none; padding: 0 2rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        .search-box button:hover { background: var(--primary-dark); }
+        .search-box button { background: var(--primary); color: var(--white); border: none; padding: 0 1.8rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
 
-        /* TRACKING RESULT PANEL */
-        #resultPanel { margin-top: 2rem; display: none; border-top: 1px solid var(--border); padding-top: 2rem; }
-        .status-badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1rem; }
-        .status-in-transit { background: #deebff; color: #0052cc; }
-        .status-delivered { background: #e3fcef; color: #006644; }
-        .status-exception { background: #ffebe6; color: #bf2600; }
+        /* ORIGINAL RESULT DISPLAY LAYOUT */
+        #resultPanel { margin-top: 2rem; display: none; border-top: 1px solid var(--border); padding-top: 1.5rem; }
 
-        .shipment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; background: var(--light); padding: 1.2rem; border-radius: 8px; }
-        .shipment-item label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--gray); font-weight: 700; margin-bottom: 0.2rem; }
-        .shipment-item span { font-weight: 600; font-size: 0.95rem; color: var(--dark); }
+        /* BLINKING STATUS INDICATOR */
+        .live-status-header { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; font-size: 1.1rem; color: var(--primary); margin-bottom: 1rem; }
+        .blinking-dot { width: 12px; height: 12px; background-color: #36b37e; border-radius: 50%; display: inline-block; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
 
-        /* DIRECT SUPPORT CONTACTS */
-        .support-links { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
-        .contact-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.2rem; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.9rem; color: white; transition: 0.2s; }
+        /* STEP PROGRESS BAR */
+        .progress-bar { display: flex; justify-content: space-between; margin: 1.5rem 0; position: relative; }
+        .progress-bar::before { content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1; }
+        .step { position: relative; z-index: 2; background: var(--white); padding: 0 5px; text-align: center; }
+        .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--border); color: var(--gray); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.3rem; font-size: 0.85rem; font-weight: bold; }
+        .step.active .step-icon { background: var(--primary); color: white; }
+        .step.completed .step-icon { background: var(--success); color: white; }
+        .step-text { font-size: 0.75rem; font-weight: 600; color: var(--gray); }
+
+        /* NOTICE BOX */
+        .notice-box { background: #fffbe6; border: 1px solid #ffe58f; padding: 0.8rem; border-radius: 6px; font-size: 0.9rem; margin: 1rem 0; color: #873800; display: none; }
+
+        /* MAP DISPLAY */
+        #map { height: 260px; width: 100%; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border); z-index: 10; }
+
+        /* DETAILS LIST */
+        .info-card { background: var(--light); padding: 1.2rem; border-radius: 8px; margin-bottom: 1rem; }
+        .info-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed var(--border); font-size: 0.9rem; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--gray); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+        .info-val { font-weight: 700; color: var(--dark); }
+
+        /* ACTION BUTTONS */
+        .action-buttons { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.2rem; }
+        .btn-action { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.95rem; border: none; cursor: pointer; color: white; }
+        .btn-download { background: var(--dark); }
         .btn-whatsapp { background: #25D366; }
-        .btn-whatsapp:hover { background: #1eb956; }
         .btn-instagram { background: #E1306C; }
-        .btn-instagram:hover { background: #c8235a; }
 
-        /* COMPANY FEATURES & INFO */
+        /* SECTIONS & FOOTER */
         .section { max-width: 1100px; margin: 4rem auto; padding: 0 1.5rem; }
-        .section-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 2.5rem; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
-        .feature-card { background: var(--white); padding: 2rem; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
-        .feature-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; }
-        .feature-card h3 { margin-bottom: 0.5rem; font-size: 1.2rem; }
-        .feature-card p { font-size: 0.9rem; color: var(--gray); }
+        .section-title { text-align: center; font-size: 1.6rem; font-weight: 800; margin-bottom: 2rem; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .feature-card { background: var(--white); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+        .feature-card i { font-size: 2rem; color: var(--primary); margin-bottom: 0.8rem; }
 
-        /* FOOTER */
-        footer { background: var(--dark); color: var(--white); padding: 3rem 1.5rem 1.5rem; margin-top: 5rem; }
-        .footer-content { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2rem; }
-        .footer-col h4 { color: var(--secondary); margin-bottom: 1rem; }
-        .footer-col p, .footer-col li { font-size: 0.85rem; color: #a5adba; list-style: none; margin-bottom: 0.5rem; }
-        .footer-bottom { text-align: center; font-size: 0.8rem; color: #a5adba; margin-top: 1.5rem; }
+        footer { background: var(--dark); color: var(--white); padding: 2rem 1.5rem 1rem; margin-top: 4rem; text-align: center; font-size: 0.85rem; color: #a5adba; }
 
-        @media (max-width: 600px) {
-            .hero-content h1 { font-size: 1.8rem; }
+        @media(max-width: 600px) {
             .search-box { flex-direction: column; }
             .search-box button { padding: 0.8rem; }
         }
@@ -92,14 +101,13 @@
 </head>
 <body>
 
-    <!-- HEADER NAVIGATION -->
+    <!-- HEADER -->
     <header>
         <div class="nav-container">
             <a href="#" class="logo"><i class="fa-solid fa-plane-departure"></i> APEXTRACK</a>
             <ul class="nav-links">
                 <li><a href="#tracking">Tracking</a></li>
                 <li><a href="#services">Services</a></li>
-                <li><a href="#about">About Us</a></li>
             </ul>
         </div>
     </header>
@@ -108,12 +116,11 @@
     <div class="hero-slider">
         <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1350&q=80');"></div>
         <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1350&q=80');"></div>
-        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=1350&q=80');"></div>
         
         <div class="slide-overlay">
             <div class="hero-content">
                 <h1>Global Express Logistics & Tracking</h1>
-                <p>Real-time end-to-end intelligence for air cargo, ocean freight, and express parcel deliveries worldwide.</p>
+                <p>Real-time intelligence for international air cargo and parcel deliveries.</p>
             </div>
         </div>
     </div>
@@ -121,94 +128,78 @@
     <!-- TRACKING CONSOLE -->
     <div class="tracker-container" id="tracking">
         <div class="tracker-card">
-            <h2>Track Your Shipment</h2>
-            <p style="color: var(--gray); font-size: 0.9rem;">Enter your Air Waybill (AWB) or Tracking Reference Number below:</p>
+            <h2>Track Consignment</h2>
+            <p style="color: var(--gray); font-size: 0.85rem;">Enter your Waybill or Tracking ID below:</p>
             
             <div class="search-box">
                 <input type="text" id="trackInput" placeholder="e.g. ATG-10001">
                 <button onclick="searchShipment()"><i class="fa-solid fa-magnifying-glass"></i> Track</button>
             </div>
 
-            <!-- DYNAMIC RESULTS DISPLAY -->
+            <!-- RESULT DISPLAY PANEL -->
             <div id="resultPanel">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span id="statusBadge" class="status-badge status-in-transit">IN TRANSIT</span>
-                    <span id="resWaybill" style="font-weight:700; color:var(--gray);"></span>
+                <!-- BLINKING LIVE STATUS HEADER -->
+                <div class="live-status-header">
+                    <span class="blinking-dot"></span>
+                    <span id="resStatus">IN TRANSIT</span>
                 </div>
 
-                <div id="statusNoteBox" style="background:#fff7e6; border:1px solid #ffe58f; padding:0.8rem; border-radius:6px; font-size:0.9rem; margin:1rem 0; display:none;">
+                <!-- PROGRESS STEPS BAR -->
+                <div class="progress-bar">
+                    <div class="step" id="step1"><div class="step-icon">1</div><div class="step-text">Picked Up</div></div>
+                    <div class="step" id="step2"><div class="step-icon">2</div><div class="step-text">In Transit</div></div>
+                    <div class="step" id="step3"><div class="step-icon">3</div><div class="step-text">Out for Delivery</div></div>
+                    <div class="step" id="step4"><div class="step-icon">4</div><div class="step-text">Delivered</div></div>
+                </div>
+
+                <!-- EXCEPTION / STATUS NOTE -->
+                <div id="statusNoteBox" class="notice-box">
                     <strong>Notice:</strong> <span id="resStatusNote"></span>
                 </div>
 
-                <div class="shipment-grid">
-                    <div class="shipment-item"><label>Sender</label><span id="resSender">--</span></div>
-                    <div class="shipment-item"><label>Recipient</label><span id="resRecipient">--</span></div>
-                    <div class="shipment-item"><label>Origin City</label><span id="resOrigin">--</span></div>
-                    <div class="shipment-item"><label>Destination City</label><span id="resDestination">--</span></div>
-                    <div class="shipment-item"><label>Package Weight</label><span id="resWeight">--</span></div>
-                    <div class="shipment-item"><label>Estimated Delivery</label><span id="resEdd">--</span></div>
+                <!-- ROUTE MAP -->
+                <div id="map"></div>
+
+                <!-- DETAILS LIST -->
+                <div class="info-card">
+                    <div class="info-row"><span class="info-label">Tracking ID</span><span class="info-val" id="resWaybill">--</span></div>
+                    <div class="info-row"><span class="info-label">Sender</span><span class="info-val" id="resSender">--</span></div>
+                    <div class="info-row"><span class="info-label">Recipient</span><span class="info-val" id="resRecipient">--</span></div>
+                    <div class="info-row"><span class="info-label">Origin</span><span class="info-val" id="resOrigin">--</span></div>
+                    <div class="info-row"><span class="info-label">Destination</span><span class="info-val" id="resDestination">--</span></div>
+                    <div class="info-row"><span class="info-label">Package Weight</span><span class="info-val" id="resWeight">--</span></div>
+                    <div class="info-row"><span class="info-label">Estimated Delivery</span><span class="info-val" id="resEdd">--</span></div>
                 </div>
 
-                <!-- CONDITIONAL CONTACT LINKS -->
-                <div class="support-links">
-                    <a id="whatsappBtn" href="#" target="_blank" class="contact-btn btn-whatsapp" style="display:none;">
-                        <i class="fa-brands fa-whatsapp"></i> Chat Support on WhatsApp
-                    </a>
-                    <a id="instagramBtn" href="#" target="_blank" class="contact-btn btn-instagram" style="display:none;">
-                        <i class="fa-brands fa-instagram"></i> Follow Live Updates on Instagram
-                    </a>
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons">
+                    <button onclick="downloadReceipt()" class="btn-action btn-download"><i class="fa-solid fa-file-pdf"></i> Download Official Waybill Receipt</button>
+                    <a id="whatsappBtn" href="#" target="_blank" class="btn-action btn-whatsapp" style="display:none;"><i class="fa-brands fa-whatsapp"></i> Chat Support on WhatsApp</a>
+                    <a id="instagramBtn" href="#" target="_blank" class="btn-action btn-instagram" style="display:none;"><i class="fa-brands fa-instagram"></i> Follow Updates on Instagram</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SERVICES & COMPANY INFO -->
+    <!-- SERVICES -->
     <div class="section" id="services">
-        <h2 class="section-title">Why Logistics Leaders Choose ApexTrack</h2>
+        <h2 class="section-title">ApexTrack Express Services</h2>
         <div class="features-grid">
-            <div class="feature-card">
-                <i class="fa-solid fa-plane-shipment"></i>
-                <h3>Air & Express Freight</h3>
-                <p>Priority air cargo routing with guaranteed door-to-door transit schedules across 220+ countries.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fa-solid fa-warehouse"></i>
-                <h3>Smart Warehousing</h3>
-                <p>Secure global logistics hubs equipped with live inventory tracking and automated sorting capabilities.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fa-solid fa-shield-halved"></i>
-                <h3>Customs Brokerage</h3>
-                <p>Seamless customs clearance management ensuring zero delays at international border control checkpoints.</p>
-            </div>
+            <div class="feature-card"><i class="fa-solid fa-plane-shipment"></i><h3>Air Freight</h3><p>Fast global priority air cargo distribution.</p></div>
+            <div class="feature-card"><i class="fa-solid fa-warehouse"></i><h3>Warehousing</h3><p>Secure global logistics and tracking hubs.</p></div>
+            <div class="feature-card"><i class="fa-solid fa-shield-halved"></i><h3>Customs Clearance</h3><p>Complete import & export clearance management.</p></div>
         </div>
     </div>
 
     <!-- FOOTER -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h4>ApexTrack Global</h4>
-                <p>Leading provider of global supply chain management, air freight forwarding, and express courier solutions.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Quick Navigation</h4>
-                <li>Track Consignment</li>
-                <li>Express Services</li>
-                <li>Global Network</li>
-            </div>
-            <div class="footer-col">
-                <h4>Global Support</h4>
-                <p>Available 24/7 for custom shipping assistance and freight inquiries.</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            &copy; 2026 ApexTrack Express Logistics Inc. All rights reserved.
-        </div>
+        <p>&copy; 2026 ApexTrack Express Logistics Inc. All rights reserved.</p>
     </footer>
 
+    <!-- Leaflet JS for Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // SLIDER ANIMATION
+        // HERO SLIDER
         let slideIndex = 0;
         const slides = document.querySelectorAll('.slide');
         setInterval(() => {
@@ -217,43 +208,39 @@
             slides[slideIndex].classList.add('active');
         }, 5000);
 
-        // SHIPMENT DATABASE
+        // MAP INITIALIZATION
+        let map = null;
+        let mapMarkers = [];
+
+        function initMap(originCoords, destCoords) {
+            if (map) map.remove();
+            
+            map = L.map('map').setView(originCoords, 4);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            const m1 = L.marker(originCoords).addTo(map).bindPopup("Origin");
+            const m2 = L.marker(destCoords).addTo(map).bindPopup("Destination");
+            
+            const polyline = L.polyline([originCoords, destCoords], {color: '#0052cc', weight: 3, dashArray: '5, 10'}).addTo(map);
+            map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
+        }
+
+        // DATABASE
         const mockDatabase = {
-            "ATG-92928": {
-                sender: "Marcel",
-                recipient: "King",
-                status: "On Hold",
-                statusNote: "Your package is on hold and requires a costom fee of $1000",
-                edd: "March 11, 2090",
-                origin: "Imo",
-                destination: "Abuja",
-                weight: "1899.8kg",
-                whatsapp: "2349079439231",
-                instagram: ""
-            },
-            "ATG-929282729": {
-                sender: "Marcel",
-                recipient: "King",
-                status: "On Hold",
-                statusNote: "Your package is on hold and requires a costom fee of $1000",
-                edd: "March 11, 2090",
-                origin: "Imo",
-                destination: "Abuja",
-                weight: "1899.8kg",
-                whatsapp: "2349079439231",
-                instagram: ""
-            },
             "ATG-10001": {
                 sender: "Global Distributors Ltd.",
                 recipient: "Sarah Williams",
                 status: "In Transit",
-                statusNote: "Shipment arrived at transit sorting hub.",
+                statusNote: "Shipment in transit to final hub.",
                 edd: "August 12, 2026",
-                origin: "Lagos, Nigeria",
-                destination: "London, UK",
+                origin: "Lagos",
+                destination: "Abuja",
                 weight: "14.5 kg",
                 whatsapp: "2348000000000",
-                instagram: "apextrack_global"
+                instagram: "",
+                coords: { origin: [6.5244, 3.3792], destination: [9.0765, 7.3986] }
             }
         };
 
@@ -263,7 +250,7 @@
             const panel = document.getElementById('resultPanel');
             
             if (!input || !mockDatabase[input]) {
-                alert("Tracking ID not found. Please verify your reference number.");
+                alert("Tracking ID not found. Please check your reference code.");
                 panel.style.display = 'none';
                 return;
             }
@@ -271,6 +258,7 @@
             const data = mockDatabase[input];
             
             document.getElementById('resWaybill').textContent = input;
+            document.getElementById('resStatus').textContent = data.status.toUpperCase();
             document.getElementById('resSender').textContent = data.sender || 'N/A';
             document.getElementById('resRecipient').textContent = data.recipient || 'N/A';
             document.getElementById('resOrigin').textContent = data.origin || 'N/A';
@@ -278,15 +266,18 @@
             document.getElementById('resWeight').textContent = data.weight || 'N/A';
             document.getElementById('resEdd').textContent = data.edd || 'N/A';
 
-            // Status Badge Styling
-            const badge = document.getElementById('statusBadge');
-            badge.textContent = data.status;
-            badge.className = 'status-badge ' + (
-                data.status.includes('Delivered') ? 'status-delivered' :
-                data.status.includes('Hold') || data.status.includes('Delayed') ? 'status-exception' : 'status-in-transit'
-            );
+            // STEPS PROGRESS BAR
+            const s1 = document.getElementById('step1');
+            const s2 = document.getElementById('step2');
+            const s3 = document.getElementById('step3');
+            const s4 = document.getElementById('step4');
 
-            // Status Note Display
+            s1.className = 'step completed';
+            s2.className = 'step ' + (data.status.includes('Transit') || data.status.includes('Delivered') || data.status.includes('Out') ? 'completed' : 'active');
+            s3.className = 'step ' + (data.status.includes('Out') || data.status.includes('Delivered') ? 'completed' : '');
+            s4.className = 'step ' + (data.status.includes('Delivered') ? 'completed' : '');
+
+            // STATUS NOTE
             const noteBox = document.getElementById('statusNoteBox');
             if (data.statusNote && data.statusNote.trim() !== "") {
                 document.getElementById('resStatusNote').textContent = data.statusNote;
@@ -295,25 +286,35 @@
                 noteBox.style.display = 'none';
             }
 
-            // WHATSAPP LINK (Shown only if number provided)
+            // WHATSAPP BUTTON (Conditional)
             const waBtn = document.getElementById('whatsappBtn');
             if (data.whatsapp && data.whatsapp.trim() !== "") {
-                waBtn.href = `https://wa.me/${data.whatsapp.replace(/[^0-9]/g, '')}?text=Hello%20ApexTrack%20Support,%20I%20am%20inquiring%20about%20my%20shipment%20${input}`;
-                waBtn.style.display = 'inline-flex';
+                waBtn.href = `https://wa.me/${data.whatsapp.replace(/[^0-9]/g, '')}?text=Hello%20ApexTrack,%20inquiring%20about%20waybill%20${input}`;
+                waBtn.style.display = 'flex';
             } else {
                 waBtn.style.display = 'none';
             }
 
-            // INSTAGRAM LINK (Shown only if username provided)
+            // INSTAGRAM BUTTON (Conditional)
             const igBtn = document.getElementById('instagramBtn');
             if (data.instagram && data.instagram.trim() !== "") {
                 igBtn.href = `https://instagram.com/${data.instagram.replace('@', '').trim()}`;
-                igBtn.style.display = 'inline-flex';
+                igBtn.style.display = 'flex';
             } else {
                 igBtn.style.display = 'none';
             }
 
             panel.style.display = 'block';
+
+            // RENDER MAP
+            const originCoords = (data.coords && data.coords.origin) ? data.coords.origin : [6.5244, 3.3792];
+            const destCoords = (data.coords && data.coords.destination) ? data.coords.destination : [9.0765, 7.3986];
+            setTimeout(() => { initMap(originCoords, destCoords); }, 200);
+        }
+
+        // RECEIPT DOWNLOAD
+        function downloadReceipt() {
+            window.print();
         }
     </script>
 </body>
